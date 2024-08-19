@@ -113,5 +113,5 @@ int main() {
     std::string t1 = school(I1, I2, B);
     std::string t2 = karatsuba(I1, I2, B);
 
-    std::cout << t1 << " " << t2 << std::endl;
+    std::cout << t1 << " " << t2 << " " << 0 << std::endl;
 }

@@ -1,116 +1,117 @@
 #include <iostream>
-#include <vector>
-#include <cmath>
 #include <string>
+#include <algorithm>
 
-std::vector<int> convertToVector(int I1, int B) {
-    std::vector<int> v1;
-    int t1 = I1;
+std::string school(std::string I1, std::string I2, int B) {
+    int largest = std::max(I1.size(), I2.size());
+    std::string res(largest + 1, '0');
 
-    while (t1 != 0) {
-        v1.push_back(t1 % B);
-        t1 = t1 / B;
-    }
-    return v1;
-}
-
-int vectorToInt(const std::vector<int>& I1, int B) {
-    int num = 0;
-    for (int i = I1.size() - 1; i >= 0; i--) {
-        num = num * B + I1[i];
-    }
-    return num;
-}
-
-std::string school(int I1, int I2, int B) {
-    std::vector<int> v1;
-    std::vector<int> v2;
-    int t1 = I1;
-    int t2 = I2;
-
-    while (t1 != 0) {
-         v1.push_back(t1 % B);
-        t1 = t1 / 10;
-    }
-
-    while (t2 != 0) {
-        v2.push_back(t2 % B);
-        t2 = t2 / 10;
-    }
-
-    int largest = 0;
-
-    if (v1.size() < v2.size()) {
-        largest = v2.size();
-    } else {
-        largest = v1.size();
-    }
-
-    std::vector<int> res;
     int carry = 0;
-
     for (int i = 0; i < largest; i++) {
-    
-        int digit1 = (i < v1.size()) ? v1[i] : 0;
-        int digit2 = (i < v2.size()) ? v2[i] : 0;
+        int digit1 = (i < I1.size()) ? I1[I1.size() - 1 - i] - '0' : 0;
+        int digit2 = (i < I2.size()) ? I2[I2.size() - 1 - i] - '0' : 0;
 
         int sum = digit1 + digit2 + carry;
         carry = sum / B;
-        res.push_back(sum % B);
+        res[i] = (sum % B) + '0';
     }
 
     if (carry > 0) {
-        res.push_back(carry);
+        res[largest] = carry + '0';
+    } else {
+        res.pop_back(); 
     }
 
-    std::string num;
-
-    for (int i = res.size() - 1; i >= 0; i--) {
-        num.push_back(res[i] + '0');
-    }
-
-    return num;
+    std::reverse(res.begin(), res.end());
+    return res;
 }
 
-long long karatsuba(int I1, int I2, int B) {
-    if (I1 < B || I2 < B) {
-        return (long long)I1 * I2;
+std::string subtractStrings(std::string I1, std::string I2, int B) {
+    int n = I1.size();
+    std::string res(n, '0');
+    int borrow = 0;
+
+    for (int i = 0; i < n; ++i) {
+        int digit1 = I1[n - 1 - i] - '0';
+        int digit2 = (i < I2.size()) ? I2[I2.size() - 1 - i] - '0' : 0;
+
+        int diff = digit1 - digit2 - borrow;
+        if (diff < 0) {
+            diff += B;
+            borrow = 1;
+        } else {
+            borrow = 0;
+        }
+        res[n - 1 - i] = diff + '0';
     }
 
-    std::vector<int> s1 = convertToVector(I1, B);
-    std::vector<int> s2 = convertToVector(I2, B);
+    size_t startpos = res.find_first_not_of('0');
+    if (std::string::npos != startpos) {
+        res = res.substr(startpos);
+    } else {
+        res = "0";
+    }
 
-    int maxLength = std::max(s1.size(), s2.size());
-    int midP = maxLength / 2;
+    return res;
+}
 
-    std::vector<int> ls1(s1.begin(), s1.begin() + midP);
-    std::vector<int> hs1(s1.begin() + midP, s1.end());
-    std::vector<int> ls2(s2.begin(), s2.begin() + midP);
-    std::vector<int> hs2(s2.begin() + midP, s2.end());
+std::string multiplyByPowerOfBase(const std::string &num, int power) {
+    if (num == "0") return "0";
+    return num + std::string(power, '0');
+}
 
-    int low1 = vectorToInt(ls1, B);
-    int high1 = vectorToInt(hs1, B);
-    int low2 = vectorToInt(ls2, B);
-    int high2 = vectorToInt(hs2, B);
+std::string lengthEqual(std::string I, int length) {
+    int i = length - I.size();
 
-    long long z0 = karatsuba(low1, low2, B);
-    long long z1 = karatsuba(low1 + high1, low2 + high2, B);
-    long long z2 = karatsuba(high1, high2, B);
+    for (; i > 0; i--) {
+        I = '0' + I;
+    }
+    
+    return I;
+}
 
-    return (z2 * pow(B, 2 * midP) + ((z1 - z2 - z0) * pow(B, midP)) + z0);
+std::string karatsuba(std::string I1, std::string I2, int B) {
+    int lengthN = std::max(I1.size(), I2.size());
+
+    if (lengthN == 1) {
+        int result = (I1[0] - '0') * (I2[0] - '0');
+        return std::to_string(result);
+    }
+
+    I1 = lengthEqual(I1, lengthN);
+    I2 = lengthEqual(I2, lengthN);
+
+    int midP = lengthN / 2;
+
+    std::string I1L = I1.substr(0, midP);
+    std::string I1R = I1.substr(midP);
+    std::string I2L = I2.substr(0, midP);
+    std::string I2R = I2.substr(midP);
+
+    std::string z0 = karatsuba(I1R, I2R, B);
+    std::string z2 = karatsuba(I1L, I2L, B);
+
+    std::string sum1 = school(I1L, I1R, B);
+    std::string sum2 = school(I2L, I2R, B);
+    std::string z1 = karatsuba(sum1, sum2, B);
+
+    z1 = subtractStrings(subtractStrings(z1, z2, B), z0, B);
+
+    std::string r1 = multiplyByPowerOfBase(z2, 2 * (lengthN - midP));
+    std::string r2 = multiplyByPowerOfBase(z1, lengthN - midP);
+    std::string result = school(school(r1, r2, B), z0, B);
+
+    return result.erase(0, std::min(result.find_first_not_of('0'), result.size() - 1));
 }
 
 int main() {
-    int I1;
-    int I2;
+    std::string I1, I2;
     int B;
 
     std::cin >> I1 >> I2 >> B;
 
     std::string t1 = school(I1, I2, B);
-    
-    long long t2 = karatsuba(I1, I2, B);
-    std::cout << t1 << " " << t2 << " " << 0 << std::endl;
+    std::string t2 = karatsuba(I1, I2, B);
 
-    return 0;
+    std::cout << t1 << " " << t2 << std::endl;
 }

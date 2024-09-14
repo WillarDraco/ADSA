@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -52,10 +53,10 @@ Node* leftRotate(Node* node) {
     return r1;
 }
 
-Node* minValue(Node* node) {
+Node* maxValue(Node* node) {
     Node* current = node;
-    while (current->left != nullptr) {
-        current = current->left;
+    while (current && current->right) {
+        current = current->right;
     }
     return current;
 }
@@ -108,18 +109,18 @@ Node* del(Node* root, int key) {
     } else if (key > root->data) {
         root->right = del(root->right, key);
     } else {
-        if (root->left == nullptr || root->right == nullptr) {
-            Node* temp = root->left ? root->left : root->right;
-            if (temp == nullptr) {
-                temp = root;
-                root = nullptr;
-            } else {
-                *root = *temp;
-            }
+        if (root->left == nullptr) {
+            Node* temp = root->right;
+            delete root;
+            return temp;
+        } else if (root->right == nullptr) {
+            Node* temp = root->left;
+            delete root;
+            return temp;
         } else {
-            Node* temp = minValue(root->right);
+            Node* temp = maxValue(root->left);
             root->data = temp->data;
-            root->right = del(root->right, temp->data);
+            root->left = del(root->left, temp->data);
         }
     }
 

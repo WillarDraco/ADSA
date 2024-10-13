@@ -10,24 +10,17 @@ struct Hashtable {
 
 int search(Hashtable* hash, std::string word) {
     char key = word.back();
-    int num = (int)key;
+    int num = (int)(key % 26);
     int check = num;
-    int end = num - 1;
+    int end = (num + 25) % 26;
 
     if (hash->word[num] != word) {
-        while (hash->status[num] != "never used" && end != check) {
+        while (hash->status[num] != "never used" && num != end) {
             if (hash->status[num] == "occupied" && hash->word[num] == word) {
-                return check;
+                return num;
             }
-
-            if (check == 25) {
-                check = -1;
-            }
-
-            check++;
+            num = (num + 1) % 26;
         }
-    } else if (hash->status[num] == "never used") {
-        return -1;
     }
     
     return -1;
@@ -41,11 +34,11 @@ void insert(Hashtable* hash, std::string word) {
     }
 
     int key = word.back();
-    int num = (int)key;
+    int num = (int)(key % 26);
     int ins = num;
 
-    while (hash->status[ins] != "never used" || hash->status[ins] != "tombstone") {
-        ins++;
+    while (hash->status[ins] == "occupied") {
+        ins = (ins + 1) % 26;
     }
 
     hash->word[ins] = word;
@@ -59,15 +52,12 @@ void del(Hashtable* hash, std::string word) {
         return;
     }
 
-    int key = word.back();
-    int num = (int)key;
-
     hash->word[check] = "";
     hash->status[check] = "tombstone";
 }
 
 int main(void) {
-    Hashtable* test;
+    Hashtable* test = new Hashtable;
 
     for (int i = 0; i < 26; i++) {
         test->status.push_back("never used");
@@ -95,9 +85,8 @@ int main(void) {
     }
 
     for (int i = 0; i < 26; i++) {
-        if (test->word[i] == "") {
-            continue;
+        if (test->status[i] == "occupied") {
+            std::cout << test->word[i] << " ";
         }
-        std::cout << test->word[i] << "";
     }
 }

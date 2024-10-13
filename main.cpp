@@ -80,7 +80,7 @@ int main(void) {
             insert(test, word);
         } else {
             std::string word = commands[i].substr(1);
-            insert(test, word);
+            del(test, word);
         }
     }
 

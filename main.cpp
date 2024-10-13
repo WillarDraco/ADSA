@@ -3,15 +3,15 @@
 #include <string>
 #include <sstream>
 
-struct Hashtable { 
+struct Hashtable {
     std::vector<std::string> word;
     std::vector<std::string> status;
 };
 
 int search(Hashtable* hash, std::string word) {
     char key = word.back();
-    int num = (int)(key % 26);
-    int check = num;
+    int num = (key - 'a') % 26;
+    int originalNum = num;
     int end = (num + 25) % 26;
 
     if (hash->word[num] != word) {
@@ -21,8 +21,10 @@ int search(Hashtable* hash, std::string word) {
             }
             num = (num + 1) % 26;
         }
+    } else {
+        return num;
     }
-    
+
     return -1;
 }
 
@@ -33,8 +35,8 @@ void insert(Hashtable* hash, std::string word) {
         return;
     }
 
-    int key = word.back();
-    int num = (int)(key % 26);
+    char key = word.back();
+    int num = (key - 'a') % 26;
     int ins = num;
 
     while (hash->status[ins] == "occupied") {
@@ -56,12 +58,12 @@ void del(Hashtable* hash, std::string word) {
     hash->status[check] = "tombstone";
 }
 
-int main(void) {
-    Hashtable* test = new Hashtable;
+int main() {
+    Hashtable test;
 
     for (int i = 0; i < 26; i++) {
-        test->status.push_back("never used");
-        test->word.push_back("");
+        test.status.push_back("never used");
+        test.word.push_back("");
     }
 
     std::string in;
@@ -77,16 +79,18 @@ int main(void) {
     for (int i = 0; i < commands.size(); i++) {
         if (commands[i][0] == 'A') {
             std::string word = commands[i].substr(1);
-            insert(test, word);
-        } else {
+            insert(&test, word);
+        } else if (commands[i][0] == 'D') {
             std::string word = commands[i].substr(1);
-            del(test, word);
+            del(&test, word);
         }
     }
 
     for (int i = 0; i < 26; i++) {
-        if (test->status[i] == "occupied") {
-            std::cout << test->word[i] << " ";
+        if (test.status[i] == "occupied") {
+            std::cout << test.word[i] << " ";
         }
     }
+
+    std::cout << std::endl;
 }

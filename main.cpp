@@ -46,7 +46,7 @@ int costCalc (std::vector<std::string> country, std::vector<std::string> build, 
     for (int i = 0; i < cities; i++) {
         for (int j = i + 1; j < cities; j++) {
             if (country[i][j] == '1') {
-                int cost = transformCost(destroy[i][j]);
+                int cost = 0;
                 adjacencyList[i].push_back({cost, {j, "destroy"}});
                 adjacencyList[j].push_back({cost, {i, "destroy"}});
             } else {
@@ -59,9 +59,7 @@ int costCalc (std::vector<std::string> country, std::vector<std::string> build, 
 
     int totalCost = 0;
     std::unordered_set<int> visited;
-    std::priority_queue<std::pair<int, std::pair<int, std::string>>, 
-                        std::vector<std::pair<int, std::pair<int, std::string>>>, 
-                        std::greater<std::pair<int, std::pair<int, std::string>>>> heap;
+    std::priority_queue<std::pair<int, std::pair<int, std::string>>, std::vector<std::pair<int, std::pair<int, std::string>>>, std::greater<std::pair<int, std::pair<int, std::string>>>> heap;
 
     heap.push({0, {0, "none"}});
 
@@ -104,6 +102,4 @@ int main() {
 
     int minCost = costCalc(country, build, destroy);
     std::cout << minCost << std::endl;
-
-    return 0;
 }

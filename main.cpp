@@ -88,8 +88,8 @@ int costCalc(std::vector<std::string> country, std::vector<std::string> build, s
                 int costD = transformCost(destroy[i][j]);
                 toDestroy.emplace_back(costD, i, j);
             } else {
-                int bcost = transformCost(build[i][j]);
-                toBuild.emplace_back(bcost, i, j);
+                int costB = transformCost(build[i][j]);
+                toBuild.emplace_back(costB, i, j);
             }
         }
     }
@@ -100,19 +100,19 @@ int costCalc(std::vector<std::string> country, std::vector<std::string> build, s
     UnionFind unionFind(cities);
     int totalCost = 0;
 
-    for (const auto& edge : toDestroy) {
-        int costD, u, v;
-        std::tie(costD, u, v) = edge;
-        if (!unionFind.unionSets(u, v)) {
+    for (auto edge : toDestroy) {
+        int costD, city1, city2;
+        std::tie(costD, city1, city2) = edge;
+        if (!unionFind.unionSets(city1, city2)) {
             totalCost += costD;
         }
     }
 
-    for (const auto& edge : toBuild) {
-        int bcost, u, v;
-        std::tie(bcost, u, v) = edge;
-        if (unionFind.unionSets(u, v)) {
-            totalCost += bcost;
+    for (auto edge : toBuild) {
+        int costB, city1, city2;
+        std::tie(costB, city1, city2) = edge;
+        if (unionFind.unionSets(city1, city2)) {
+            totalCost += costB;
         }
     }
 

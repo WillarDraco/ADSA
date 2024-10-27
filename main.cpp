@@ -1,9 +1,47 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <queue>
-#include <unordered_set>
+#include <algorithm>
 #include <sstream>
+#include <tuple>
+
+class UnionFind {
+public:
+    UnionFind(int n) : parent(n), rank(n, 1) {
+        for (int i = 0; i < n; i++) {
+            parent[i] = i;
+        }
+    }
+
+    int find(int x) {
+        if (parent[x] != x) {
+            parent[x] = find(parent[x]);
+        }
+        return parent[x];
+    }
+
+    bool unionSets(int x, int y) {
+        int rX = find(x);
+        int rY = find(y);
+
+        if (rX != rY) {
+            if (rank[rX] > rank[rY]) {
+                parent[rY] = rX;
+            } else if (rank[rX] < rank[rY]) {
+                parent[rX] = rY;
+            } else {
+                parent[rY] = rX;
+                rank[rX]++;
+            }
+            return true;
+        }
+        return false;
+    }
+
+private:
+    std::vector<int> parent;
+    std::vector<int> rank;
+};
 
 std::vector<std::string> split(const std::string& str, char delimiter) {
     std::vector<std::string> tokens;
@@ -39,67 +77,54 @@ int transformCost(char toTrans) {
     return 0;
 }
 
-int costCalc (std::vector<std::string> country, std::vector<std::string> build, std::vector<std::string> destroy) {
+int costCalc(std::vector<std::string> country, std::vector<std::string> build, std::vector<std::string> destroy) {
     int cities = country.size();
-    std::vector<std::vector<std::pair<int, std::pair<int, std::string>>>> adjacencyList(cities);
+    std::vector<std::tuple<int, int, int>> toDestroy;
+    std::vector<std::tuple<int, int, int>> toBuild;
 
     for (int i = 0; i < cities; i++) {
         for (int j = i + 1; j < cities; j++) {
             if (country[i][j] == '1') {
-                int cost = 0;
-                adjacencyList[i].push_back({cost, {j, "destroy"}});
-                adjacencyList[j].push_back({cost, {i, "destroy"}});
+                int costD = transformCost(destroy[i][j]);
+                toDestroy.emplace_back(costD, i, j);
             } else {
-                int cost = transformCost(build[i][j]);
-                adjacencyList[i].push_back({cost, {j, "build"}});
-                adjacencyList[j].push_back({cost, {i, "build"}});
+                int bcost = transformCost(build[i][j]);
+                toBuild.emplace_back(bcost, i, j);
             }
         }
     }
 
+    std::sort(toDestroy.begin(), toDestroy.end(), std::greater<std::tuple<int, int, int>>());
+    std::sort(toBuild.begin(), toBuild.end());
+
+    UnionFind unionFind(cities);
     int totalCost = 0;
-    std::unordered_set<int> visited;
-    std::priority_queue<std::pair<int, std::pair<int, std::string>>, std::vector<std::pair<int, std::pair<int, std::string>>>, std::greater<std::pair<int, std::pair<int, std::string>>>> heap;
 
-    heap.push({0, {0, "none"}});
-
-    while (!heap.empty() && visited.size() < cities) {
-        auto top = heap.top();
-        heap.pop();
-        int cost = top.first;
-        int current = top.second.first;
-        std::string action = top.second.second;
-
-        if (visited.find(current) != visited.end()) {
-            continue;
-        }
-
-        visited.insert(current);
-
-        if (action == "build" || action == "destroy") {
-            totalCost += cost;
-        }
-
-        for (auto& neighbour : adjacencyList[current]) {
-            int neighbourCost = neighbour.first;
-            int neighbourCity = neighbour.second.first;
-            std::string neighbourAction = neighbour.second.second;
-
-            if (visited.find(neighbourCity) == visited.end()) {
-                heap.push({neighbourCost, {neighbourCity, neighbourAction}});
-            }
+    for (const auto& edge : toDestroy) {
+        int costD, u, v;
+        std::tie(costD, u, v) = edge;
+        if (!unionFind.unionSets(u, v)) {
+            totalCost += costD;
         }
     }
+
+    for (const auto& edge : toBuild) {
+        int bcost, u, v;
+        std::tie(bcost, u, v) = edge;
+        if (unionFind.unionSets(u, v)) {
+            totalCost += bcost;
+        }
+    }
+
     return totalCost;
 }
 
 int main() {
     std::string input;
     getline(std::cin, input);
-
     std::vector<std::string> country, build, destroy;
-    inputToString(input, country, build, destroy);
 
+    inputToString(input, country, build, destroy);
     int minCost = costCalc(country, build, destroy);
     std::cout << minCost << std::endl;
 }
